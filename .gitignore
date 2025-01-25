@@ -1,0 +1,5 @@
+out
+built
+node_modules
+.vscode/
+.env
