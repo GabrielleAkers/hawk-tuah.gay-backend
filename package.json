@@ -13,12 +13,14 @@
   "license": "MIT",
   "description": "",
   "devDependencies": {
+    "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/node": "^22.10.2",
     "http-server": "^14.1.1",
     "typescript": "^5.7.2"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "steam-server-query": "^1.1.3"

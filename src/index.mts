@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import { queryGameServerInfo, queryGameServerPlayer } from "steam-server-query";
 import { config } from "dotenv";
 
@@ -17,7 +18,7 @@ const query_port = env.parsed["QUERY_PORT"];
 const app = express();
 app.use(express.json());
 
-app.get("/status", async (req, res) => {
+app.get("/status", cors(), async (req, res) => {
     try {
         const server_info = await queryGameServerInfo(`${query_host}:${query_port}`);
         const server_players = await queryGameServerPlayer(`${query_host}:${query_port}`);
