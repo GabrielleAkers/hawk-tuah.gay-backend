@@ -5,17 +5,26 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  build-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
         uses: actions/checkout@v4
+      - name: setup Node
+        uses: actions/setup-node@v4.1.0
+        with:
+          node-version: 22.0.0
+      - name: install deps and build
+        run: |
+          npm install
+          npm run build
       - name: create ssh key
         run: |
           install -m 600 -D /dev/null ~/.ssh/id_rsa
           echo "${{ secrets.STEAM_DEPLOY_KEY }}" > ~/.ssh/id_rsa
           ssh-keyscan -H "${{ secrets.SERVER_IP }}" > ~/.ssh/known_hosts
       - name: deploy
-        run: rsync -rav ./ steam:${{ secrets.SERVER_IP }}:/dev
+        run: |
+          rsync -rav -e "ssh -i \"$HOME/.ssh/id_rsa\"" ./* steam:${{ secrets.SERVER_IP }}:"/home/steam/dev"
       - name: restart systemd service
         run: sudo systemctl restart hawk-tuah.service

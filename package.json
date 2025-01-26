@@ -8,7 +8,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
     "dev": "tsc --watch & node built/index.mjs",
-    "start": "npm i && tsc && node built/index.mjs"
+    "start": "node built/index.mjs"
   },
   "author": "",
   "license": "MIT",
