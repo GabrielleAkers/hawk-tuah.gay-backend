@@ -25,6 +25,6 @@ jobs:
           ssh-keyscan -H "${{ secrets.SERVER_IP }}" > ~/.ssh/known_hosts
       - name: deploy
         run: |
-          rsync -rav -e "ssh -i \"$HOME/.ssh/id_rsa\"" ./* steam:${{ secrets.SERVER_IP }}:"/home/steam/dev"
+          rsync -rav -e "ssh -i \"$HOME/.ssh/id_rsa\"" ./* steam@${{ secrets.SERVER_IP }}:"/home/steam/dev"
       - name: restart systemd service
         run: sudo systemctl restart hawk-tuah.service
