@@ -26,11 +26,35 @@ const creds = {
 const app = express();
 app.use(express.json());
 
+const game_handlers: Record<string, { info: () => Promise<any>, players: () => Promise<any>; }> = {
+    starbound: {
+        info: async () => await queryGameServerInfo(`${query_host}:${query_port}`),
+        players: async () => await queryGameServerPlayer(`${query_host}:${query_port}`)
+    },
+};
+
 app.get("/status", cors(), async (req, res) => {
     try {
-        const server_info = await queryGameServerInfo(`${query_host}:${query_port}`);
-        const server_players = await queryGameServerPlayer(`${query_host}:${query_port}`);
-        res.send({ info: server_info, players: server_players });
+        const game = req.query.game?.toString().toLowerCase() || "all";
+        if (game === "all") {
+            const o: Record<string, { info: Record<string, any>, players: Record<string, any>; }> = {};
+            Object.entries(game_handlers).forEach(async (kv) => {
+                o[kv[0]] = {
+                    info: await kv[1].info(),
+                    players: await kv[1].players()
+                };
+            });
+            res.send(o);
+        } else if (!Object.keys(game_handlers).includes(game)) {
+            res.status(400).send("Game not supported");
+        } else {
+            res.send({
+                [game]: {
+                    info: await game_handlers[game].info(),
+                    players: await game_handlers[game].players()
+                }
+            });
+        }
     } catch (err: any) {
         console.error(err);
         res.status(500).send("Something went wrong");
