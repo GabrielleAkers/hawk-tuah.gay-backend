@@ -1,8 +1,5 @@
 import express from "express";
 import cors from "cors";
-import https from "https";
-import fs from "fs";
-import path from "path";
 import { queryGameServerInfo, queryGameServerPlayer } from "steam-server-query";
 import { config } from "dotenv";
 
@@ -10,12 +7,9 @@ const env = config();
 
 if (env.error) throw env.error;
 if (env.parsed === undefined) throw new Error("No env file");
-["PORT", "QUERY_HOST", "QUERY_PORT", "CERT_DIR"].forEach(k => {
+["PORT", "QUERY_HOST", "QUERY_PORT"].forEach(k => {
     if (env.parsed![k] === undefined) throw new Error("Env must contain " + k);
 });
-
-const key = fs.readFileSync(path.resolve(env.parsed["CERT_DIR"] + "/hawktuah.key"));
-const cert = fs.readFileSync(env.parsed["CERT_DIR"] + "/hawktuah.crt");
 
 const port = env.parsed["PORT"];
 const query_host = env.parsed["QUERY_HOST"];
@@ -35,8 +29,6 @@ app.get("/status", cors(), async (req, res) => {
     }
 });
 
-const https_server = https.createServer({ key: key, cert: cert }, app);
-
-https_server.listen(port, () => {
+app.listen(port, () => {
     console.log(`Listening on ${port}`);
 });
