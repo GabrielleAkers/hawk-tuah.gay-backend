@@ -1,0 +1,21 @@
+name: Deploy to server
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: create ssh key
+        run: |
+          install -m 600 -D /dev/null ~/.ssh/id_rsa
+          echo "${{ secrets.STEAM_DEPLOY_KEY }}" > ~/.ssh/id_rsa
+          ssh-keyscan -H "${{ secrets.SERVER_IP }}" > ~/.ssh/known_hosts
+      - name: deploy
+        run: rsync -rav ./ steam:${{ secrets.SERVER_IP }}:/dev
+      - name: restart systemd service
+        run: sudo systemctl restart hawk-tuah.service
