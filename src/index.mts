@@ -49,10 +49,8 @@ app.get("/status", cors(), async (req, res) => {
             res.status(400).send("Game not supported");
         } else {
             res.send({
-                [game]: {
-                    info: await game_handlers[game].info(),
-                    players: await game_handlers[game].players()
-                }
+                info: await game_handlers[game].info(),
+                players: await game_handlers[game].players()
             });
         }
     } catch (err: any) {
