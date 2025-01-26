@@ -27,4 +27,6 @@ jobs:
         run: |
           rsync -rav -e "ssh -i \"$HOME/.ssh/id_rsa\"" ./* steam@${{ secrets.SERVER_IP }}:"/home/steam/dev"
       - name: restart systemd service
-        run: sudo systemctl restart hawk-tuah.service
+        run: |
+          ssh -i \"$HOME/.ssh/id_rsa\" steam@${{ secrets.SERVER_IP }}
+          sudo systemctl restart hawk-tuah.service
