@@ -4,7 +4,7 @@ import express from "express";
 import fs from "fs";
 import http from "http";
 import https from "https";
-import path from "path";
+import path, { resolve } from "path";
 import { queryGameServerInfo, queryGameServerPlayer } from "steam-server-query";
 import xml2js from "xml2js";
 
@@ -27,6 +27,12 @@ const creds = {
 
 const app = express();
 app.use(express.json());
+app.use(cors({
+    credentials: true,
+    preflightContinue: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    origin: true
+}));
 
 const game_handlers: Record<string, { info: () => Promise<any>, players: () => Promise<any>; }> = {
     starbound: {
@@ -35,7 +41,7 @@ const game_handlers: Record<string, { info: () => Promise<any>, players: () => P
     },
 };
 
-app.get("/status", cors(), async (req, res) => {
+app.get("/status", async (req, res) => {
     try {
         const game = req.query.game?.toString().toLowerCase() || "all";
         if (game === "all") {
@@ -66,7 +72,7 @@ const do_wow_soap = (command: string): Promise<{ result?: string; fault_code?: s
         const req = http.request({
             port: 7878,
             method: "POST",
-            hostname: "localhost",
+            hostname: "127.0.0.1",
             auth: `${env.parsed!["WOW_SOAP_USER"]}:${env.parsed!["WOW_SOAP_PASS"]}`,
             headers: { 'Content-Type': 'application/xml' }
         }, res => {
