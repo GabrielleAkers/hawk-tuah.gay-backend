@@ -88,7 +88,17 @@ const game_handlers: Record<string, { info: () => Promise<any>, players: () => P
         players: async () => await queryGameServerPlayer(`${query_host}:${query_port}`)
     },
     wow: {
-        info: async () => await do_wow_soap("server info"),
+        info: async () => {
+            const r = await do_wow_soap("server info");
+            const players = r.result ? r.result.match(/Connected players: ([0-9]+)/)?.at(1) ?? -1 : -1;
+            const maxPlayers = r.result ? r.result.match(/Characters in world: ([0-9]+)/)?.at(1) ?? -1 : -1;
+            return {
+                game: "WoW",
+                name: "TuahWoW",
+                players,
+                maxPlayers
+            };
+        },
         players: async () => { }
     }
 };
