@@ -130,7 +130,7 @@ app.post("/create_wow_account", async (req, res) => {
         const soap_res = await do_wow_soap(`account create ${user} ${pass}`);
         if (soap_res["fault_code"] !== undefined) {
             console.log("Create account error", soap_res["fault_code"], soap_res["fault_string"]);
-            res.status(500).send("Something went wrong");
+            res.status(500).send(soap_res["fault_string"]);
             return;
         }
         res.send(soap_res["result"]);
