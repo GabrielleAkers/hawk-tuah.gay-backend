@@ -34,39 +34,6 @@ app.use(cors({
     origin: true
 }));
 
-const game_handlers: Record<string, { info: () => Promise<any>, players: () => Promise<any>; }> = {
-    starbound: {
-        info: async () => await queryGameServerInfo(`${query_host}:${query_port}`),
-        players: async () => await queryGameServerPlayer(`${query_host}:${query_port}`)
-    },
-};
-
-app.get("/status", async (req, res) => {
-    try {
-        const game = req.query.game?.toString().toLowerCase() || "all";
-        if (game === "all") {
-            const o: Record<string, { info: Record<string, any>, players: Record<string, any>; }> = {};
-            Object.entries(game_handlers).forEach(async (kv) => {
-                o[kv[0]] = {
-                    info: await kv[1].info(),
-                    players: await kv[1].players()
-                };
-            });
-            res.send(o);
-        } else if (!Object.keys(game_handlers).includes(game)) {
-            res.status(400).send("Game not supported");
-        } else {
-            res.send({
-                info: await game_handlers[game].info(),
-                players: await game_handlers[game].players()
-            });
-        }
-    } catch (err: any) {
-        console.error(err);
-        res.status(500).send("Something went wrong");
-    }
-});
-
 const do_wow_soap = (command: string): Promise<{ result?: string; fault_code?: string, fault_string?: string; }> => {
     return new Promise((resolve, reject) => {
         const req = http.request({
@@ -96,7 +63,7 @@ const do_wow_soap = (command: string): Promise<{ result?: string; fault_code?: s
                 }
                 console.log(d.toString());
             });
-        });
+        }).on("error", console.error);
         req.write(
             '<SOAP-ENV:Envelope' +
             ' xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"' +
@@ -114,6 +81,43 @@ const do_wow_soap = (command: string): Promise<{ result?: string; fault_code?: s
         req.end();
     });
 };
+
+const game_handlers: Record<string, { info: () => Promise<any>, players: () => Promise<any>; }> = {
+    starbound: {
+        info: async () => await queryGameServerInfo(`${query_host}:${query_port}`),
+        players: async () => await queryGameServerPlayer(`${query_host}:${query_port}`)
+    },
+    wow: {
+        info: async () => await do_wow_soap("server info"),
+        players: async () => { }
+    }
+};
+
+app.get("/status", async (req, res) => {
+    try {
+        const game = req.query.game?.toString().toLowerCase() || "all";
+        if (game === "all") {
+            const o: Record<string, { info: Record<string, any>, players: Record<string, any>; }> = {};
+            Object.entries(game_handlers).forEach(async (kv) => {
+                o[kv[0]] = {
+                    info: await kv[1].info(),
+                    players: await kv[1].players()
+                };
+            });
+            res.send(o);
+        } else if (!Object.keys(game_handlers).includes(game)) {
+            res.status(400).send("Game not supported");
+        } else {
+            res.send({
+                info: await game_handlers[game].info(),
+                players: await game_handlers[game].players()
+            });
+        }
+    } catch (err: any) {
+        console.error(err);
+        res.status(500).send("Something went wrong");
+    }
+});
 
 app.post("/create_wow_account", async (req, res) => {
     try {
